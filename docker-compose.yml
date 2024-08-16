@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+  db:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: Kanta0930
+      MYSQL_DATABASE: mydb
+    ports:
+      - "3308:3306"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      retries: 5
+      timeout: 20s
+      start_period: 30s
+
+  app:
+    build: .
+    command: go run main.go
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
