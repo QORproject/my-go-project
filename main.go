@@ -6,7 +6,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/go-sql-driver/mysql"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -41,16 +40,34 @@ func main() {
 	}
 	defer db.Close()
 
-	// テーブルが存在するか確認
-	_, err = db.Exec("SELECT 1 FROM users LIMIT 1")
+	// データの挿入
+	_, err = db.Exec("INSERT INTO users (column1, column2) VALUES (?, ?)", "John Doe", 30)
 	if err != nil {
-		if _, ok := err.(*mysql.MySQLError); ok {
-			log.Fatalf("Table 'users' doesn't exist: %v", err)
-		} else {
-			log.Fatalf("Error querying database: %v", err)
+		log.Fatalf("Error inserting data: %v", err)
+	}
+	fmt.Println("Data inserted successfully!")
+
+	// データの取得
+	rows, err := db.Query("SELECT id, column1, column2 FROM users")
+	if err != nil {
+		log.Fatalf("Error querying data: %v", err)
+	}
+	defer rows.Close()
+
+	fmt.Println("Data from 'users' table:")
+	for rows.Next() {
+		var id int
+		var column1 string
+		var column2 int
+		err := rows.Scan(&id, &column1, &column2)
+		if err != nil {
+			log.Fatalf("Error scanning data: %v", err)
 		}
-	} else {
-		fmt.Println("Table 'users' exists!")
+		fmt.Printf("ID: %d, Column1: %s, Column2: %d\n", id, column1, column2)
 	}
 
+	// エラーチェック
+	if err = rows.Err(); err != nil {
+		log.Fatalf("Error with rows: %v", err)
+	}
 }
