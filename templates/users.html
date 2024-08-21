@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users Table</title>
+</head>
+<body>
+    <h1>Users Table</h1>
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>User</th>
+            <th>Age</th>
+            <th>Actions</th>
+        </tr>
+        {{range .Users}}
+        <tr>
+            <td>{{.ID}}</td>
+            <td>{{.Column1}}</td>
+            <td>{{.Column2}}</td>
+            <td>
+                <a href="/update?id={{.ID}}">Update</a>
+                <a href="/delete?id={{.ID}}">Delete</a>
+            </td>
+        </tr>
+        {{end}}
+    </table>
+    <br>
+    <a href="/create">Create New User</a>
+</body>
+</html>

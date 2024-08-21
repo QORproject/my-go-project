@@ -2,72 +2,50 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
+	"html/template"
 	"log"
-	"time"
+	"my-go-project/handlers"
+	"net/http"
 
 	_ "github.com/go-sql-driver/mysql"
 )
+
+var db *sql.DB
+var templates *template.Template
+
+func init() {
+	// テンプレートを一括でパースする
+	templates = template.Must(template.ParseGlob("templates/*.html"))
+}
 
 func main() {
 	// MySQLへの接続文字列 (DSN)
 	dsn := "root:Kanta0930@tcp(db:3306)/mydb"
 
-	// MySQLへの接続を試みる (最大10回リトライ)
-	var db *sql.DB
+	// MySQLへの接続を試みる
 	var err error
-	for i := 0; i < 10; i++ {
-		db, err = sql.Open("mysql", dsn)
-		if err != nil {
-			log.Printf("Failed to connect to MySQL: %v\n", err)
-			time.Sleep(5 * time.Second)
-			continue
-		}
-
-		// Pingを送って接続確認
-		err = db.Ping()
-		if err == nil {
-			fmt.Println("Connected to MySQL!")
-			break
-		}
-
-		log.Printf("MySQL connection failed: %v. Retrying...\n", err)
-		time.Sleep(5 * time.Second)
-	}
-
+	db, err = sql.Open("mysql", dsn)
 	if err != nil {
-		log.Fatalf("Could not connect to MySQL: %v", err)
+		log.Fatalf("Failed to connect to MySQL: %v", err)
 	}
 	defer db.Close()
 
-	// データの挿入
-	_, err = db.Exec("INSERT INTO users (column1, column2) VALUES (?, ?)", "John Doe", 30)
+	// MySQL接続確認
+	err = db.Ping()
 	if err != nil {
-		log.Fatalf("Error inserting data: %v", err)
+		log.Fatalf("Could not connect to MySQL: %v", err)
 	}
-	fmt.Println("Data inserted successfully!")
+	log.Println("Connected to MySQL!")
 
-	// データの取得
-	rows, err := db.Query("SELECT id, column1, column2 FROM users")
-	if err != nil {
-		log.Fatalf("Error querying data: %v", err)
-	}
-	defer rows.Close()
+	// エンドポイントの設定
+	http.HandleFunc("/", handlers.ShowUsers(db, templates))
+	http.HandleFunc("/create", handlers.CreateUserForm(templates))
+	http.HandleFunc("/create/submit", handlers.CreateUser(db))
+	http.HandleFunc("/update", handlers.UpdateUserForm(db, templates))
+	http.HandleFunc("/update/submit", handlers.UpdateUser(db))
+	http.HandleFunc("/delete", handlers.DeleteUserForm(db, templates))
+	http.HandleFunc("/delete/submit", handlers.DeleteUser(db))
 
-	fmt.Println("Data from 'users' table:")
-	for rows.Next() {
-		var id int
-		var column1 string
-		var column2 int
-		err := rows.Scan(&id, &column1, &column2)
-		if err != nil {
-			log.Fatalf("Error scanning data: %v", err)
-		}
-		fmt.Printf("ID: %d, Column1: %s, Column2: %d\n", id, column1, column2)
-	}
-
-	// エラーチェック
-	if err = rows.Err(); err != nil {
-		log.Fatalf("Error with rows: %v", err)
-	}
+	log.Println("Starting server on :8080...")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }

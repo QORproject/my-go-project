@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New User</title>
+</head>
+<body>
+    <h1>Create New User</h1>
+    <form action="/create/submit" method="POST">
+        <label for="id">ID:</label><br>
+        <input type="number" id="id" name="id" min="1"><br>
+        <label for="name">Name:</label><br>
+        <input type="text" id="name" name="name"><br>
+        <label for="age">Age:</label><br>
+        <input type="number" id="age" name="age" min="0"><br>
+        <input type="submit" value="Create">
+    </form>
+</body>
+</html>
