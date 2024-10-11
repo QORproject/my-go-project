@@ -4,47 +4,33 @@ import (
 	"database/sql"
 	"html/template"
 	"net/http"
-	"strconv"
+	"time"
 )
 
-func CreateUserForm(templates *template.Template) http.HandlerFunc {
+func CreateUserForm(tmpl *template.Template) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		err := templates.ExecuteTemplate(w, "create.html", nil)
-		if err != nil {
-			http.Error(w, "Error rendering template", http.StatusInternalServerError)
-		}
+		tmpl.ExecuteTemplate(w, "create.html", nil)
 	}
 }
 
 func CreateUser(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != "POST" {
-			http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-			return
-		}
+		if r.Method == http.MethodPost {
+			r.ParseForm()
+			name := r.FormValue("name")
+			gender := r.FormValue("gender")
+			age := r.FormValue("age")
+			email := r.FormValue("email")
+			password := r.FormValue("password")
 
-		// フォームデータからID、名前、年齢を取得
-		id, err := strconv.Atoi(r.FormValue("id"))
-		if err != nil || id <= 0 {
-			http.Error(w, "Invalid ID", http.StatusBadRequest)
-			return
-		}
+			_, err := db.Exec("INSERT INTO User_Info (Name, Gender, Age, Email, Password, CreateAt, UpdateAt) VALUES (?, ?, ?, ?, ?, ?, ?)",
+				name, gender, age, email, password, time.Now(), time.Now())
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 
-		name := r.FormValue("name")
-		age, err := strconv.Atoi(r.FormValue("age"))
-		if err != nil || age < 0 {
-			http.Error(w, "Invalid age", http.StatusBadRequest)
-			return
+			http.Redirect(w, r, "/", http.StatusSeeOther)
 		}
-
-		// ユーザー情報をデータベースに挿入
-		_, err = db.Exec("INSERT INTO users (id, column1, column2) VALUES (?, ?, ?)", id, name, age)
-		if err != nil {
-			http.Error(w, "Error inserting data", http.StatusInternalServerError)
-			return
-		}
-
-		// 作成後、ユーザー一覧ページにリダイレクト
-		http.Redirect(w, r, "/", http.StatusSeeOther)
 	}
 }

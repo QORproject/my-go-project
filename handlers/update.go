@@ -4,68 +4,52 @@ import (
 	"database/sql"
 	"html/template"
 	"net/http"
-	"strconv"
+	"time"
 )
 
-func UpdateUserForm(db *sql.DB, templates *template.Template) http.HandlerFunc {
+func UpdateUserForm(db *sql.DB, tmpl *template.Template) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// URLパラメータからIDを取得
-		idStr := r.URL.Query().Get("id")
-		id, err := strconv.Atoi(idStr)
+		id := r.URL.Query().Get("id")
+
+		row := db.QueryRow("SELECT Name, Age FROM User_Info WHERE User_ID = ?", id)
+
+		var name string
+		var age int
+		err := row.Scan(&name, &age)
 		if err != nil {
-			http.Error(w, "Invalid ID", http.StatusBadRequest)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		// 指定されたIDのユーザー情報を取得
-		var user struct {
-			ID      int
-			Column1 string
-			Column2 int
-		}
-		err = db.QueryRow("SELECT id, column1, column2 FROM users WHERE id = ?", id).Scan(&user.ID, &user.Column1, &user.Column2)
-		if err != nil {
-			http.Error(w, "Error fetching user", http.StatusInternalServerError)
-			return
+		data := struct {
+			ID   string
+			Name string
+			Age  int
+		}{
+			ID:   id,
+			Name: name,
+			Age:  age,
 		}
 
-		// 更新フォームにユーザー情報を埋め込んで表示
-		err = templates.ExecuteTemplate(w, "update.html", user)
-		if err != nil {
-			http.Error(w, "Error rendering template", http.StatusInternalServerError)
-		}
+		tmpl.ExecuteTemplate(w, "update.html", data)
 	}
 }
 
 func UpdateUser(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != "POST" {
-			http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-			return
-		}
+		if r.Method == http.MethodPost {
+			r.ParseForm()
+			id := r.FormValue("id")
+			name := r.FormValue("name")
+			age := r.FormValue("age")
 
-		// フォームデータからID、名前、年齢を取得
-		id, err := strconv.Atoi(r.FormValue("id"))
-		if err != nil {
-			http.Error(w, "Invalid ID", http.StatusBadRequest)
-			return
-		}
+			_, err := db.Exec("UPDATE User_Info SET Name = ?, Age = ?, UpdateAt = ? WHERE User_ID = ?", name, age, time.Now(), id)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 
-		name := r.FormValue("name")
-		age, err := strconv.Atoi(r.FormValue("age"))
-		if err != nil {
-			http.Error(w, "Invalid age", http.StatusBadRequest)
-			return
+			http.Redirect(w, r, "/", http.StatusSeeOther)
 		}
-
-		// ユーザー情報を更新
-		_, err = db.Exec("UPDATE users SET column1 = ?, column2 = ? WHERE id = ?", name, age, id)
-		if err != nil {
-			http.Error(w, "Error updating data", http.StatusInternalServerError)
-			return
-		}
-
-		// 更新後、ユーザー一覧ページにリダイレクト
-		http.Redirect(w, r, "/", http.StatusSeeOther)
 	}
 }

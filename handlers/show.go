@@ -6,40 +6,32 @@ import (
 	"net/http"
 )
 
-func ShowUsers(db *sql.DB, templates *template.Template) http.HandlerFunc {
+type User struct {
+	ID   int
+	Name string
+	Age  int
+}
+
+func ShowUsers(db *sql.DB, tmpl *template.Template) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		rows, err := db.Query("SELECT id, column1, column2 FROM users")
+		rows, err := db.Query("SELECT User_ID, Name, Age FROM User_Info")
 		if err != nil {
-			http.Error(w, "Error querying database", http.StatusInternalServerError)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		defer rows.Close()
 
-		var users []struct {
-			ID      int
-			Column1 string
-			Column2 int
-		}
-
+		var users []User
 		for rows.Next() {
-			var user struct {
-				ID      int
-				Column1 string
-				Column2 int
-			}
-			err := rows.Scan(&user.ID, &user.Column1, &user.Column2)
+			var user User
+			err := rows.Scan(&user.ID, &user.Name, &user.Age)
 			if err != nil {
-				http.Error(w, "Error scanning data", http.StatusInternalServerError)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 			users = append(users, user)
 		}
 
-		err = templates.ExecuteTemplate(w, "users.html", map[string]interface{}{
-			"Users": users,
-		})
-		if err != nil {
-			http.Error(w, "Error rendering template", http.StatusInternalServerError)
-		}
+		tmpl.ExecuteTemplate(w, "users.html", struct{ Users []User }{Users: users})
 	}
 }

@@ -10,15 +10,15 @@
     <table border="1">
         <tr>
             <th>ID</th>
-            <th>User</th>
+            <th>Name</th>
             <th>Age</th>
             <th>Actions</th>
         </tr>
         {{range .Users}}
         <tr>
             <td>{{.ID}}</td>
-            <td>{{.Column1}}</td>
-            <td>{{.Column2}}</td>
+            <td>{{.Name}}</td>
+            <td>{{.Age}}</td>
             <td>
                 <a href="/update?id={{.ID}}">Update</a>
                 <a href="/delete?id={{.ID}}">Delete</a>

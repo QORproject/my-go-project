@@ -38,13 +38,13 @@ func main() {
 	log.Println("Connected to MySQL!")
 
 	// エンドポイントの設定
-	http.HandleFunc("/", handlers.ShowUsers(db, templates))
-	http.HandleFunc("/create", handlers.CreateUserForm(templates))
-	http.HandleFunc("/create/submit", handlers.CreateUser(db))
-	http.HandleFunc("/update", handlers.UpdateUserForm(db, templates))
-	http.HandleFunc("/update/submit", handlers.UpdateUser(db))
-	http.HandleFunc("/delete", handlers.DeleteUserForm(db, templates))
-	http.HandleFunc("/delete/submit", handlers.DeleteUser(db))
+	http.HandleFunc("/", handlers.ShowUsers(db, templates))            // ユーザー一覧表示
+	http.HandleFunc("/create", handlers.CreateUserForm(templates))     // ユーザー作成フォーム表示
+	http.HandleFunc("/create/submit", handlers.CreateUser(db))         // ユーザー作成処理
+	http.HandleFunc("/update", handlers.UpdateUserForm(db, templates)) // ユーザー更新フォーム表示
+	http.HandleFunc("/update/submit", handlers.UpdateUser(db))         // ユーザー更新処理
+	http.HandleFunc("/delete", handlers.DeleteUserForm(db, templates)) // ユーザー削除フォーム表示
+	http.HandleFunc("/delete/submit", handlers.DeleteUser(db))         // ユーザー削除処理
 
 	log.Println("Starting server on :8080...")
 	log.Fatal(http.ListenAndServe(":8080", nil))
