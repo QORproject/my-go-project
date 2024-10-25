@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Book</title>
+</head>
+<body>
+    <h1>Create New Book</h1>
+    <form action="/create/book/submit" method="POST">
+        <label for="title">Title:</label><br>
+        <input type="text" id="title" name="title"><br>
+        <label for="author">Author:</label><br>
+        <input type="text" id="author" name="author"><br>
+        <label for="releaseDate">Release Date (YYYY-MM-DD):</label><br>
+        <input type="date" id="releaseDate" name="releaseDate"><br>
+        <label for="synopsis">Synopsis:</label><br>
+        <textarea id="synopsis" name="synopsis"></textarea><br>
+        <input type="submit" value="Create">
+    </form>
+</body>
+</html>

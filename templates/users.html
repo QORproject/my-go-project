@@ -9,19 +9,19 @@
     <h1>Users Table</h1>
     <table border="1">
         <tr>
-            <th>ID</th>
+            <th>UserID</th>
             <th>Name</th>
             <th>Age</th>
             <th>Actions</th>
         </tr>
-        {{range .Users}}
+        {{range .}}
         <tr>
-            <td>{{.ID}}</td>
+            <td>{{.UserID}}</td>
             <td>{{.Name}}</td>
             <td>{{.Age}}</td>
             <td>
-                <a href="/update?id={{.ID}}">Update</a>
-                <a href="/delete?id={{.ID}}">Delete</a>
+                <a href="/update?id={{.UserID}}">Update</a>
+                <a href="/delete?id={{.UserID}}">Delete</a>
             </td>
         </tr>
         {{end}}
