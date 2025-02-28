@@ -76,6 +76,7 @@ import (
 	"html/template"
 	"net/http"
 	"time"
+	"fmt"
 )
 
 // ユーザー作成フォームの表示
@@ -85,19 +86,30 @@ func CreateUserForm(tmpl *template.Template) http.HandlerFunc {
 	}
 }
 
+type CreateUserRequest struct {
+    Name  string `json:"name"`
+    Gender string `json:"gender"`
+    Age int `json:"age"`
+    Email string `json:"email"`
+    Password string `json:"password"`
+}
+
 // / ユーザーの作成処理
 func CreateUser(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
-			r.ParseForm()
-			name := r.FormValue("name")
-			gender := r.FormValue("gender")
-			age := r.FormValue("age")
-			email := r.FormValue("email")
-			password := r.FormValue("password")
+			fmt.Println("call CreateUser")
+
+			var request CreateUserRequest
+			// リクエストボディからJSONをデコード
+			decodeError := json.NewDecoder(r.Body).Decode(&request)
+			if decodeError != nil {
+				http.Error(w, decodeError.Error(), http.StatusBadRequest)
+				return
+			}
 
 			_, err := db.Exec("INSERT INTO User_Info (Name, Gender, Age, Email, Password, CreateAt, UpdateAt) VALUES (?, ?, ?, ?, ?, ?, ?)",
-				name, gender, age, email, password, time.Now(), time.Now())
+			request.Name, request.Gender, request.Age, request.Email, request.Password, time.Now(), time.Now())
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
